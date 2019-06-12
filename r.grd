@@ -1,0 +1,26 @@
+[general]
+creator=R package 'raster'
+created=2019-06-12 13:58:47
+[georeference]
+nrows=7
+ncols=7
+xmin=42
+ymin=47
+xmax=49
+ymax=54
+projection=+proj=merc +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0
+[data]
+datatype=FLT4S
+byteorder=little
+nbands=1
+bandorder=BIL
+categorical=FALSE
+minvalue=78
+maxvalue=231
+nodatavalue=-3.4e+38
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=red
