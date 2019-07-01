@@ -1,4 +1,4 @@
-// Copyright (c) 2018  Robert J. Hijmans
+// Copyright (c) 2018-2019  Robert J. Hijmans
 //
 // This file is part of the "spat" library.
 //
@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <string>
 #include <cmath>
+#include "spatMessages.h"
 
 // comment out if GDAL not available
 //#define useGDAL
@@ -26,30 +27,9 @@
 //#define useRcpp
 
 
-
 #ifndef M_PI
 #define M_PI (3.14159265358979323846)
 #endif
-
-class SpatMessages {
-	public:
-		bool success = true;
-		bool has_error = false;
-		bool has_warning = false;
-		std::string error;
-		std::vector<std::string> warnings;
-
-		void setError(std::string s) {
-			has_error = true;
-			error = s;
-			success = false;
-		}
-		void addWarning(std::string s) {
-			has_warning = true;
-			warnings.push_back(s);
-		}
-};
-
 
 
 class SpatOptions {
@@ -61,18 +41,20 @@ class SpatOptions {
 	public:
 		std::string def_datatype = "FLT4S";
 		std::string def_filetype = "GTiff";
+		std::string def_bandorder = "BIL";
 		bool overwrite = false;
 		unsigned progress = 4;
 		unsigned blocksizemp = 4;
 
 		std::string datatype = "";
+		std::string bandorder = "";
 		std::string filetype = "";
 		std::string filename = "";
 		std::vector<std::string> gdal_options;
 
 		SpatOptions();
 		SpatOptions(const SpatOptions &opt);
-		SpatOptions deepcopy(const SpatOptions &opt);
+		SpatOptions deepCopy(const SpatOptions &opt);
 
 		// permanent
 		bool get_todisk();
@@ -83,20 +65,24 @@ class SpatOptions {
 		void set_tempdir(std::string d);
 
 		std::string get_def_datatype();
+		std::string get_def_bandorder();
 		std::string get_def_filetype();
 		void set_def_datatype(std::string d);
+		void set_def_bandorder(std::string d);
 		void set_def_filetype(std::string d);
 
 		// single use
 		void set_filename(std::string d);
 		void set_filetype(std::string d);
 		void set_datatype(std::string d);
+		void set_bandorder(std::string d);
 		void set_overwrite(bool b);
 		void set_progress(unsigned p);
 		void set_blocksizemp(unsigned x);
 		std::string get_filename();
 		std::string get_filetype();
 		std::string get_datatype();
+		std::string get_bandorder();
 		bool get_overwrite();
 		unsigned get_progress();
 		bool do_progress(unsigned n);
@@ -135,6 +121,18 @@ class SpatExtent {
 			return(e);
 		}
 
+		std::vector<std::vector<double>> asPoints() {
+			std::vector<std::vector<double>> pts(2, std::vector<double>(4));
+			pts[0][0] = xmin;
+			pts[1][0] = ymin;
+			pts[0][1] = xmin;
+			pts[1][1] = ymax;
+			pts[0][2] = xmax;
+			pts[1][2] = ymax;
+			pts[0][3] = xmax;
+			pts[1][3] = ymin;
+			return(pts);
+		}
 
 		bool is_lonlat(std::string crs) {
 			bool b1 = crs.find("longlat") != std::string::npos;

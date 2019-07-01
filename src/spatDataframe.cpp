@@ -19,8 +19,8 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include <cmath>
 #include "NA.h"
+#include "string_utils.h"
 
 
 std::vector<double> SpatDataFrame::getD(unsigned i) {
@@ -153,7 +153,7 @@ void SpatDataFrame::reserve(unsigned n) {
 	}
 }
 
-void SpatDataFrame::resize(unsigned n) {
+void SpatDataFrame::resize_rows(unsigned n) {
 	for (size_t i=0; i<dv.size(); i++) {
 		dv[i].resize(n, NAN);
 	}
@@ -165,7 +165,49 @@ void SpatDataFrame::resize(unsigned n) {
 		sv[i].resize(n, NAS);
 	}
 }
-	
+
+void SpatDataFrame::resize_cols(unsigned n) {
+	if (n < ncol()) {
+		itype.resize(n);
+		iplace.resize(n);
+	} else {
+		setError("you can only resize to fewer columns");
+	}	
+}
+
+bool SpatDataFrame::add_column(std::vector<double> x, std::string name) {
+	unsigned nr = nrow();
+	if ((nr != 0) & (nr != x.size())) return false; 
+	iplace.push_back(dv.size());
+	itype.push_back(0);	
+	names.push_back(name);
+	dv.push_back(x);
+	return true;
+}
+
+
+bool SpatDataFrame::add_column(std::vector<long> x, std::string name) {
+	unsigned nr = nrow();
+	if ((nr != 0) & (nr != x.size())) return false; 
+	iplace.push_back(iv.size());
+	itype.push_back(1);	
+	names.push_back(name);
+	iv.push_back(x);
+	return true;
+}
+
+
+bool SpatDataFrame::add_column(std::vector<std::string> x, std::string name) {
+	unsigned nr = nrow();
+	if ((nr != 0) & (nr != x.size())) return false; 
+	iplace.push_back(sv.size());
+	itype.push_back(2);	
+	names.push_back(name);
+	sv.push_back(x);
+	return true;
+}
+
+
 void SpatDataFrame::add_column(unsigned dtype, std::string name) {
 	unsigned nr = nrow();
 	if (dtype == 0) {
@@ -186,38 +228,6 @@ void SpatDataFrame::add_column(unsigned dtype, std::string name) {
 	names.push_back(name);
 }
 
-bool SpatDataFrame::add_column(std::vector<double> x, std::string name) {
-	unsigned nr = nrow();
-	if ((nr != 0) & (nr != x.size())) return false; 
-	dv.push_back(x);
-	iplace.push_back(dv.size());
-	itype.push_back(0);	
-	names.push_back(name);
-	return true;
-}
-
-
-bool SpatDataFrame::add_column(std::vector<long> x, std::string name) {
-	unsigned nr = nrow();
-	if ((nr != 0) & (nr != x.size())) return false; 
-	iv.push_back(x);
-	iplace.push_back(iv.size());
-	itype.push_back(1);	
-	names.push_back(name);
-	return true;
-}
-
-
-bool SpatDataFrame::add_column(std::vector<std::string> x, std::string name) {
-	unsigned nr = nrow();
-	if ((nr != 0) & (nr != x.size())) return false; 
-	sv.push_back(x);
-	iplace.push_back(sv.size());
-	itype.push_back(2);	
-	names.push_back(name);
-	return true;
-}
-
 bool SpatDataFrame::cbind(SpatDataFrame &x) {
 	unsigned nc = x.ncol();
 	std::vector<std::string> nms = x.names;
@@ -234,5 +244,21 @@ bool SpatDataFrame::cbind(SpatDataFrame &x) {
 		}
 	}
 	return true;
+}
+
+
+std::vector<std::string> SpatDataFrame::get_names() {
+	return names;	
+}
+
+
+void SpatDataFrame::set_names(std::vector<std::string> nms){
+	if (ncol() == nms.size()) {
+        make_valid_names(nms);
+        make_unique_names(nms);	
+		names = nms;
+	} else {
+		setError("number of names is not correct");
+	}
 }
 

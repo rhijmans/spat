@@ -160,6 +160,7 @@ std::vector<std::vector<double>> SpatRaster::extractXY(std::vector<double> &x, s
     unsigned nl = nlyr();
     unsigned np = x.size();
 	std::vector<std::vector<double>> out(nl, std::vector<double>(np, NAN));
+	if (!hasValues()) return out;
 
 	if ((method == "idw") | (method == "bilinear")) {
 
@@ -266,11 +267,13 @@ std::vector<std::vector<double>> SpatRaster::extractXY(std::vector<double> &x, s
 
 
 // <geom<layer<values>>>
-std::vector<std::vector<std::vector<double>>> SpatRaster::extractVector(SpatVector v, std::string fun) {
+std::vector<std::vector<std::vector<double>>> SpatRaster::extractVector(SpatVector v) {
 
     unsigned nl = nlyr();
     unsigned ng = v.size();
     std::vector<std::vector<std::vector<double>>> out(ng, std::vector<std::vector<double>>(nl));
+
+	if (!hasValues()) return out;
 
 	std::vector<std::vector<double>> srcout;
 	std::string gtype = v.type();
@@ -328,19 +331,17 @@ std::vector<std::vector<std::vector<double>>> SpatRaster::extractVector(SpatVect
 
 std::vector<std::vector<double>> SpatRaster::extractCell(std::vector<double> &cell) {
 
-	unsigned n = cell.size();
+	unsigned n  = cell.size();
 	unsigned nc = ncell();
 	std::vector<std::vector<double>> out(nlyr(), std::vector<double>(n, NAN));
+	if (!hasValues()) return out;
+	
 	unsigned ns = nsrc();
 
-    // not useful if all sources are memory
-	std::vector<std::vector<unsigned> > rc = rowColFromCell(cell);
-	std::vector<unsigned> rows = rc[0];
-	std::vector<unsigned> cols = rc[1];
 	unsigned lyr = 0;
 	for (size_t src=0; src<ns; src++) {
+		unsigned slyrs = source[src].layers.size();
 
-		unsigned slyrs = source[src].nlyr;
 		if (source[src].driver == "memory") {
 			for (size_t i=0; i<slyrs; i++) {
 				size_t j = i * nc;
@@ -353,14 +354,19 @@ std::vector<std::vector<double>> SpatRaster::extractCell(std::vector<double> &ce
 				lyr++;
 			}
 		} else {
-
-		#ifdef useGDAL
-			std::vector<std::vector<double>> srcout = readRowColGDAL(src, rows, cols); //
-            for (size_t i=0; i<slyrs; i++) {
+			std::vector<std::vector<double>> srcout;
+			if (source[0].driver == "raster") {
+				srcout = readCellsBinary(src, cell); 
+			} else {
+			#ifdef useGDAL
+				std::vector<std::vector<unsigned>> rc = rowColFromCell(cell);
+				srcout = readRowColGDAL(src, rc[0], rc[1]); 
+			#endif
+			}
+			for (size_t i=0; i<slyrs; i++) {
 				out[lyr] = srcout[i];
 				lyr++;
 			}
-        #endif
 		}
 	}
 	return out;

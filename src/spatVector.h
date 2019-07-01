@@ -1,4 +1,4 @@
-// Copyright (c) 2018  Robert J. Hijmans
+// Copyright (c) 2018-2019  Robert J. Hijmans
 //
 // This file is part of the "spat" library.
 //
@@ -17,6 +17,7 @@
 
 #include "spatBase.h"
 #include "spatDataframe.h"
+#include "spatMessages.h"
 
 enum SpatGeomType { points, lines, polygons, unknown };
 
@@ -99,7 +100,14 @@ class SpatVector {
 		bool setGeom(SpatGeom p);
 		SpatDataFrame getGeometryDF();
 
-		SpatVector subset(std::vector<unsigned> range);
+		SpatVector project(std::string crs);
+		//std::vector<std::vector<double>> test(std::vector<double> x, std::vector<double> y, std::string fromcrs, std::string tocrs);
+		
+		SpatVector subset_cols(int i);
+		SpatVector subset_cols(std::vector<int> range);
+		SpatVector subset_rows(int i);
+		SpatVector subset_rows(std::vector<int> range);
+
 		void setGeometry(std::string type, std::vector<unsigned> gid, std::vector<unsigned> part, std::vector<double> x, std::vector<double> y, std::vector<unsigned> hole);
 
 		std::vector<double> area();
@@ -120,16 +128,12 @@ class SpatVector {
 		void add_column(unsigned dtype, std::string name) {
 			lyr.df.add_column(dtype, name);
 		};
-		bool add_column(std::vector<double> x, std::string name) {
+		
+		template <typename T>
+		bool add_column(std::vector<T> x, std::string name) {
 			return lyr.df.add_column(x, name);
 		}
-		bool add_column(std::vector<long> x, std::string name) {
-			return lyr.df.add_column(x, name);
-		}
-		bool add_column(std::vector<std::string> x, std::string name) {
-			return lyr.df.add_column(x, name);
-		}
-
+		
 		SpatMessages msg;
 		void setError(std::string s) { msg.setError(s); }
 		void addWarning(std::string s) { msg.addWarning(s); }

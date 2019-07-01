@@ -1,4 +1,4 @@
-// Copyright (c) 2018  Robert J. Hijmans
+// Copyright (c) 2018-2019  Robert J. Hijmans
 //
 // This file is part of the "spat" library.
 //
@@ -14,8 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with spat. If not, see <http://www.gnu.org/licenses/>.
-
+#include <cmath>
+#include <limits>
+#include <vector>
 bool is_equal(double a, double b, double error_factor=1.0);
+bool about_equal(double a, double b, double tolerance);
 bool is_equal_range(double x, double y, double range, double tolerance);
 void vector_minmax(std::vector<double> v, double &min, int &imin, double &max, int &imax);
 double roundn(double x, int n);

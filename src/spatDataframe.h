@@ -1,4 +1,4 @@
-// Copyright (c) 2018  Robert J. Hijmans
+// Copyright (c) 2018-2019  Robert J. Hijmans
 //
 // This file is part of the "spat" library.
 //
@@ -15,11 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with spat. If not, see <http://www.gnu.org/licenses/>.
 
+
 #include <vector>
 #include <string>
+#include "spatMessages.h"
+
 
 class SpatDataFrame {
 	public:
+		SpatMessages msg;
+		void setError(std::string s) { msg.setError(s); }
+		void addWarning(std::string s) { msg.addWarning(s); }
+		bool hasError() { return msg.has_error; }
+	
 		std::vector<std::string> names;
 		std::vector<unsigned> itype;
 		std::vector<unsigned> iplace;
@@ -39,6 +47,7 @@ class SpatDataFrame {
 		std::vector<std::string> getS(unsigned i);
 	
 		void add_row();
+		
 		void add_column(unsigned dtype, std::string name);
 		bool add_column(std::vector<double> x, std::string name);
 		bool add_column(std::vector<long> x, std::string name);
@@ -48,11 +57,14 @@ class SpatDataFrame {
 		void insert_column(std::vector<long>);		
 		void insert_column(std::vector<std::string>);
 
-		void resize(unsigned n);
+		void resize_rows(unsigned n);
+		void resize_cols(unsigned n);
 		void reserve(unsigned n);
 		
 		bool rbind(SpatDataFrame &x);
 		bool cbind(SpatDataFrame &x);
 		
+		std::vector<std::string> get_names();
+		void set_names(std::vector<std::string> nms);
 };
 

@@ -19,14 +19,8 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <fstream>
+#include <numeric>
 
-
-
-bool file_exists(const std::string& name) {
-	std::ifstream f(name.c_str());
-	return f.good();
-}
 
 std::string concatenate(std::vector<std::string> v, std::string delim) {
 	for (size_t i=0; i<(v.size()-1); i++) {
@@ -99,36 +93,6 @@ std::vector<std::string> dbl2str(std::vector<double> d) {
 
 
 
-std::string getFileExt(const std::string& s) {
-	size_t i = s.rfind('.', s.length());
-	if (i != std::string::npos) {
-		return(s.substr(i, s.length() - i));
-	}
-	return("");
-}
-
-std::string setFileExt(const std::string& s, const std::string& ext) {
-	size_t i = s.rfind('.', s.length());
-	if (i != std::string::npos) {
-		return(s.substr(0, i) + ext);
-	}
-	return(s + ext);
-}
-
-std::string basename(std::string filename) {
-	const size_t i = filename.find_last_of("\\/");
-	if (std::string::npos != i) {
-		filename.erase(0, i + 1);
-	}
-	const size_t p = filename.rfind('.');
-	if (std::string::npos != p) {
-		filename.erase(p);
-	}
-	return filename;
-}
-
-
-
 // trim from start (in place)
 void ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
@@ -168,4 +132,49 @@ std::string lrtrim_copy(std::string s) {
 }
 
 
+
+void make_valid_names(std::vector<std::string> &s) {
+    for (size_t i=0; i<s.size(); i++) {
+        lrtrim(s[i]);
+        if (s[i] == "") s[i] = "X";
+        if (isdigit(s[i][0])) s[i] = "X" + s[i];
+//        if ((s[i][0] == ".") & (s[i].size() > 1)) {
+//			if (isdigit(s[i][1])) s[i] = "X" + s[i];
+//		}
+        std::replace(s[i].begin(), s[i].end(), ' ', '.');
+    }
+}
+
+
+
+template <typename T>
+std::vector<long unsigned> order(const std::vector<T> &v) {
+  // initialize original index locations
+  std::vector<long unsigned> idx(v.size());
+  std::iota(idx.begin(), idx.end(), 0);
+  // sort indexes based on comparing values in v
+  std::sort(idx.begin(), idx.end(),
+       [&v](long unsigned i1, long unsigned i2) {return v[i1] < v[i2];});
+  return idx;
+}
+
+
+void make_unique_names(std::vector<std::string> &s) {
+    std::vector<long unsigned> x = order(s);
+    std::sort(s.begin(), s.end());
+    std::vector<std::string> ss = s;
+    unsigned j = 1;
+    for (size_t i=1; i<s.size(); i++) {
+        if (s[i] == s[i-1]) {
+            ss[i-1] = s[i-1] + "_" + std::to_string(j);
+            ss[i] = s[i] + "_" + std::to_string(j + 1);
+            j++;
+        } else {
+            j = 1;
+        }
+    }
+    for (size_t i=0; i<s.size(); i++) {
+        s[x[i]] = ss[i];
+    }
+}
 
